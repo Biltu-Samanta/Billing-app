@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;700&display=swap');
+
+body {
+    font-family: 'Noto Serif Bengali', serif;
+    background-color: #f3f4f6;
+}
+
+/* Helper to hide elements during PDF generation logic in JS */
+body.pdf-rendering .no-print {
+    display: none !important;
+}
+
+body.pdf-rendering .shadow-xl {
+    box-shadow: none !important;
+}
+
+body.pdf-rendering .p-6 {
+    /* Reduce padding for PDF so it fits better */
+    padding: 10px !important;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+
+    body {
+        background-color: white;
+        padding: 0;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .print-border {
+        border: 1px solid #000 !important;
+    }
+
+    .shadow-none {
+        box-shadow: none !important;
+    }
+
+    .print\:shadow-none {
+        box-shadow: none !important;
+    }
+
+    .print\:m-0 {
+        margin: 0 !important;
+    }
+
+    .print\:p-4 {
+        padding: 1rem !important;
+    }
+
+    .print\:rounded-none {
+        border-radius: 0 !important;
+    }
+
+    .print\:border-none {
+        border: none !important;
+    }
+
+    .print\:bg-white {
+        background-color: white !important;
+    }
+
+    .print\:text-black {
+        color: black !important;
+    }
+
+    .print\:border-black {
+        border-color: black !important;
+    }
+
+    .print\:bg-gray-100 {
+        background-color: #f3f4f6 !important;
+    }
+
+    .print\:bg-gray-200 {
+        background-color: #e5e7eb !important;
+    }
+
+    .print\:hover\:bg-transparent:hover {
+        background-color: transparent !important;
+    }
+}
