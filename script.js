@@ -36,16 +36,104 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('remove-row-btn').addEventListener('click', removeRow);
         document.getElementById('add-extra-btn').addEventListener('click', addExtraCharge);
         document.getElementById('pdf-btn').addEventListener('click', handleDownloadPDF);
+        const jpgBtn = document.getElementById('jpg-btn');
+        if (jpgBtn) {
+            jpgBtn.addEventListener('click', handleDownloadJPG);
+        }
 
         fromDateInput.addEventListener('change', handleFromDateChange);
         toDateInput.addEventListener('change', (e) => toDate = e.target.value);
 
         // Event Delegation for Table Inputs
         tableBody.addEventListener('input', handleTableInput);
+        tableBody.addEventListener('keydown', handleTableKeydown);
+        tableBody.addEventListener('focusin', (e) => {
+            if (e.target.matches('input[type="number"]')) {
+                e.target.select();
+            }
+        });
 
         // Event Delegation for Extra Charges Inputs
         extraChargesContainer.addEventListener('input', handleExtraInput);
         extraChargesContainer.addEventListener('click', handleExtraClick);
+    }
+
+    // --- Keyboard Navigation Helpers ---
+    function focusCell(input) {
+        if (!input) return;
+        input.focus();
+        if (typeof input.select === 'function' && input.type !== 'date') {
+            input.select();
+        }
+    }
+
+    function handleTableKeydown(e) {
+        const input = e.target;
+        if (!input || !input.matches('input')) return;
+
+        const tr = input.closest('tr');
+        if (!tr) return;
+
+        const trs = Array.from(tableBody.querySelectorAll('tr'));
+        const rowIndex = trs.indexOf(tr);
+        if (rowIndex === -1) return;
+
+        const rowInputs = Array.from(tr.querySelectorAll('input'));
+        const colIndex = rowInputs.indexOf(input);
+        if (colIndex === -1) return;
+
+        if (e.key === 'Tab') {
+            if (!e.shiftKey) {
+                // Forward Tab: switch between columns
+                e.preventDefault();
+                if (colIndex + 1 < rowInputs.length) {
+                    // Next column in same row
+                    focusCell(rowInputs[colIndex + 1]);
+                } else {
+                    // Next row, first column
+                    if (rowIndex + 1 < trs.length) {
+                        const nextRowInputs = trs[rowIndex + 1].querySelectorAll('input');
+                        focusCell(nextRowInputs[0]);
+                    } else {
+                        const newTr = addRow();
+                        const newRowInputs = newTr.querySelectorAll('input');
+                        focusCell(newRowInputs[0]);
+                    }
+                }
+            } else {
+                // Shift + Tab: switch to previous column
+                if (colIndex > 0) {
+                    e.preventDefault();
+                    focusCell(rowInputs[colIndex - 1]);
+                } else if (rowIndex > 0) {
+                    e.preventDefault();
+                    const prevRowInputs = trs[rowIndex - 1].querySelectorAll('input');
+                    focusCell(prevRowInputs[prevRowInputs.length - 1]);
+                }
+                // If on first row, first column, allow default behavior to exit table
+            }
+        } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            // Down Arrow or Enter: switch between rows (same column)
+            e.preventDefault();
+            if (rowIndex + 1 < trs.length) {
+                const nextRowInputs = trs[rowIndex + 1].querySelectorAll('input');
+                const target = nextRowInputs[colIndex] || nextRowInputs[nextRowInputs.length - 1];
+                focusCell(target);
+            } else {
+                const newTr = addRow();
+                const newRowInputs = newTr.querySelectorAll('input');
+                const target = newRowInputs[colIndex] || newRowInputs[newRowInputs.length - 1];
+                focusCell(target);
+            }
+        } else if (e.key === 'ArrowUp') {
+            // Up Arrow: switch to row above (same column)
+            e.preventDefault();
+            if (rowIndex > 0) {
+                const prevRowInputs = trs[rowIndex - 1].querySelectorAll('input');
+                const target = prevRowInputs[colIndex] || prevRowInputs[0];
+                focusCell(target);
+            }
+        }
     }
 
     // --- Logic Functions ---
@@ -94,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Append single row to DOM
         const tr = createRowElement(newRow, rows.length - 1);
         tableBody.appendChild(tr);
+        return tr;
     }
 
     function removeRow() {
@@ -178,16 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createRowElement(row, index) {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-indigo-50 transition-colors print:hover:bg-transparent";
+        tr.className = "hover:bg-indigo-50/60 transition-colors print:hover:bg-transparent";
         tr.innerHTML = `
             <td class="border border-gray-300 p-0 print:border-black">
-                <input type="date" value="${row.tarikh}" data-field="tarikh" class="row-date w-full h-full p-1 bg-transparent focus:outline-none text-sm">
+                <input type="date" value="${row.tarikh}" data-field="tarikh" class="row-date w-full h-full p-1 bg-transparent focus:outline-none focus:bg-indigo-50 focus:ring-2 focus:ring-indigo-500 focus:ring-inset text-sm transition-all">
             </td>
             <td class="border border-gray-300 p-0 print:border-black">
-                <input type="number" value="${row.pujaGhor || ''}" data-field="pujaGhor" class="w-full h-full p-1 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono text-sm" placeholder="0">
+                <input type="number" value="${row.pujaGhor || ''}" data-field="pujaGhor" class="w-full h-full p-1 text-center bg-transparent focus:outline-none focus:bg-indigo-50 focus:ring-2 focus:ring-indigo-500 focus:ring-inset [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono text-sm transition-all" placeholder="0">
             </td>
             <td class="border border-gray-300 p-0 print:border-black">
-                <input type="number" value="${row.chaGhor || ''}" data-field="chaGhor" class="w-full h-full p-1 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono text-sm" placeholder="0">
+                <input type="number" value="${row.chaGhor || ''}" data-field="chaGhor" class="w-full h-full p-1 text-center bg-transparent focus:outline-none focus:bg-indigo-50 focus:ring-2 focus:ring-indigo-500 focus:ring-inset [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono text-sm transition-all" placeholder="0">
             </td>
             <td class="border border-gray-300 p-1 text-center bg-indigo-50 font-bold font-mono print:bg-white print:border-black row-moot text-sm">
                 ${row.moot.toFixed(2)}
@@ -279,6 +368,60 @@ document.addEventListener('DOMContentLoaded', () => {
             .save()
             .then(() => {
                 document.body.classList.remove('pdf-rendering');
+            });
+    }
+
+    // --- JPG Generation ---
+    function handleDownloadJPG() {
+        const btn = document.getElementById('jpg-btn');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin w-4 h-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                প্রসেসিং...
+            `;
+        }
+
+        document.body.classList.add('pdf-rendering');
+        const element = document.querySelector('.max-w-\\[210mm\\]');
+
+        const opt = {
+            margin: 0,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true }
+        };
+
+        html2pdf()
+            .set(opt)
+            .from(element)
+            .outputImg('datauristring')
+            .then(result => {
+                const dataUrl = (typeof result === 'string') ? result : (result && result.src ? result.src : null);
+                if (!dataUrl) {
+                    throw new Error('Image data could not be generated.');
+                }
+                const link = document.createElement('a');
+                const dateStr = new Date().toISOString().split('T')[0];
+                link.download = 'Bill-' + dateStr + '.jpg';
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch(err => {
+                console.error('JPG Generation Error:', err);
+                alert('JPG তৈরি করতে সমস্যা হয়েছে!');
+            })
+            .finally(() => {
+                document.body.classList.remove('pdf-rendering');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
             });
     }
 

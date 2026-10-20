@@ -5,17 +5,20 @@ body {
     background-color: #f3f4f6;
 }
 
-/* Helper to hide elements during PDF generation logic in JS */
-body.pdf-rendering .no-print {
+/* Helper to hide elements during PDF & JPG generation logic in JS */
+body.pdf-rendering .no-print,
+body.jpg-rendering .no-print {
     display: none !important;
 }
 
-body.pdf-rendering .shadow-xl {
+body.pdf-rendering .shadow-xl,
+body.jpg-rendering .shadow-xl {
     box-shadow: none !important;
 }
 
-body.pdf-rendering .p-6 {
-    /* Reduce padding for PDF so it fits better */
+body.pdf-rendering .p-6,
+body.jpg-rendering .p-6 {
+    /* Reduce padding so it fits better */
     padding: 10px !important;
 }
 
