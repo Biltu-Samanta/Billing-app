@@ -125,6 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = newRowInputs[colIndex] || newRowInputs[newRowInputs.length - 1];
                 focusCell(target);
             }
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            // Left/Right Arrow: switch between columns in the same row
+            const step = e.key === 'ArrowLeft' ? -1 : 1;
+            const target = rowInputs[colIndex + step];
+            if (target) {
+                e.preventDefault();
+                focusCell(target);
+            }
         } else if (e.key === 'ArrowUp') {
             // Up Arrow: switch to row above (same column)
             e.preventDefault();
